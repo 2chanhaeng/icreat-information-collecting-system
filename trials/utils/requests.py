@@ -46,3 +46,25 @@ def get_response(page: int, per_page: int) -> requests.models.Response:
         params={"page": page, "perPage": per_page, "serviceKey": env("API_KEY")},
     )
     return response
+
+
+def get_data() -> list[dict[str, str | int]]:
+    page = 1
+    per_page = DEFAULT_PER_PAGE
+    response = get_response(page, per_page)
+    initdata = response.json()
+    total_count = initdata.get("totalCount")
+    if not total_count:
+        print(__name__, "No data")
+        print(f"status code: {response.status_code}")
+        print(f"{response.text}")
+        return []
+    total_page = total_count // per_page + 2
+    data = initdata.get("data") + sum(
+        (
+            get_response(page, per_page).json().get("data")
+            for page in range(2, total_page)
+        ),
+        [],
+    )
+    return data

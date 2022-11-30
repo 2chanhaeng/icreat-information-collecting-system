@@ -1,3 +1,5 @@
+import csv
+from datetime import datetime
 import requests
 import environ
 from pathlib import Path
@@ -68,3 +70,17 @@ def get_data() -> list[dict[str, str | int]]:
         [],
     )
     return data
+
+
+def save_data_to_csv(data: list[dict[str, str | int]]) -> None:
+    """
+    Save `list[dict]` type data to csv file.
+    The file is saved in the `data` directory.
+    The name is in `%Y%m%d-%H%M%S`(yyyymmdd-HHMMSS) format when this function is executed.
+    The fieldname is defined by the key of the first dictionary of the list.
+    """
+    now = datetime.now().strftime("%Y%m%d-%H%M%S")
+    with open(DATA_PATH / f"{now}.csv", "w", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, data[0].keys())
+        writer.writeheader()
+        writer.writerows(data)

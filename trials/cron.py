@@ -28,40 +28,86 @@ def log_updated_data():
 
 
 def update_data():
+    """
+    Update data using get_data.
+    If there is a new data, create a new Trial instance.
+    Else if some data is updated, update the instance.
+    """
     data = get_data()
     save_data_to_csv(data)
-    counter = {"success": 0, "fail": 0}
+    counter = {"created": 0, "fail": 0, "updated": 0}
     for row in data:
         trial_info = {verbose_to_field[k]: v for k, v in row.items()}
+        # Convert verbose name to field name
         if not trial_info.get("target"):
+            # If the target is empty, skip the data
+            # It will make the data null
             trial_info.pop("target")
         try:
-            trial = Trial.objects.update_or_create(**trial_info)
-            print(f"Successfully create {trial}.")
-            counter["success"] += 1
+            trial, is_created = Trial.objects.get_or_create(
+                number=trial_info.pop("number"),
+                defaults=trial_info,
+            )
+            # Get trial instance with number
         except Exception as e:
             name = row.get("name")
             error = str(e)
             if name:  # If name exists, print the name and error.
-                print(f"{name} is not created by {error}.")
-            else:  # If name does not exist, print error.
-                print(f"Some data is not created by {error}.")
-                for key, value in row.items():
-                    print(f"  {key}: {value}")
+                print(f"{name} got {error}.")
+            else:  # If name does not exist, print data and error.
+                print(f"This data got {error}.")
+                print("\n".join(f"  {key}: {value}" for key, value in row.items()))
             counter["fail"] += 1
-    match counter["success"], counter["fail"]:
-        case (0, 0):
-            summary = "No data is created."
-        case (0, fails):
-            summary = f"All {fails} data is not created."
-        case (successes, 0):
-            summary = f"All {successes} data is created."
-        case (successes, fails):
-            total = successes + fails
-            percentage = successes / total * 100
-            summary = (
-                f"{successes} data is created."
-                + f" {fails} data is not created."
-                + f" {percentage:.2f}% of {total} data is created."
-            )
+            continue
+        if is_created:
+            # If the trial is created, print the created trial.
+            print(f"Successfully create {trial}.")
+            counter["created"] += 1
+        else:
+            # If the trial already exists,
+            # check that the data is updated.
+            trial, is_updated = update_if_changed(trial, trial_info)
+            if is_updated:
+                # If the data is updated, print the updated trial.
+                trial.save()
+                print(f"Successfully update {trial}.")
+                counter["updated"] += 1
+    summary = summarize_counter(counter)
     print(summary)
+
+
+def update_if_changed(trial, trial_info):
+    """
+    Check that the data is updated.
+    If the data is updated, update the instance.
+    """
+    for key, value in trial_info.items():
+        is_updated = False
+        if getattr(trial, key) != value:
+            # If the data is changed,
+            # update the data
+            setattr(trial, key, value)
+            # and set is_updated to True.
+            is_updated = True
+    return trial, is_updated
+
+
+def summarize_counter(counter):
+    """
+    Summarize the counter.
+    """
+    updated = counter["updated"]
+    created = counter["created"]
+    fails = counter["fail"]
+    successes = updated + created
+    total = successes + fails
+    if total == 0:
+        return "Nothing is updated."
+    percentage = successes / total * 100
+    summary = (
+        f"{created} data is created."
+        + f" {updated} data is updated."
+        + f" {fails} data is failed."
+        + f" {percentage:.2f}% of {total} data is updated or created."
+    )
+    return summary

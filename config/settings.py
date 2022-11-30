@@ -37,9 +37,12 @@ SYSTEM_APPS = [
 
 THIRD_PARTY_APPS = [
     "rest_framework",
+    "django_crontab",
 ]
 
-CUSTOM_APPS = []
+CUSTOM_APPS = [
+    "trials.apps.TrialsConfig",
+]
 
 INSTALLED_APPS = SYSTEM_APPS + THIRD_PARTY_APPS + CUSTOM_APPS
 
@@ -107,9 +110,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = "ko-kr"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Asia/Seoul"
 
 USE_I18N = True
 
@@ -125,3 +128,12 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+# cronjob
+CRONJOBS = [
+    ("* 9 * * *", "trials.cron.log_updated_data"),
+    ("* 18 * * *", "trials.cron.log_updated_data"),
+]
+# For start cronjob, run "python manage.py crontab add"
+# For stop cronjob, run "python manage.py crontab remove"

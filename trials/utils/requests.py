@@ -45,27 +45,39 @@ def get_response(page: int, per_page: int) -> requests.models.Response:
     )
     response = requests.get(
         URL,
-        params={"page": page, "perPage": per_page, "serviceKey": env("API_KEY")},
+        params={
+            "page": page,
+            "perPage": per_page,
+            "serviceKey": env("API_KEY"),
+        },
     )
     return response
 
 
 def get_data() -> list[dict[str, str | int]]:
+    """
+    Get all the data from API.
+    Currently(2022-11-30), the API returns 145 data.
+    """
     page = 1
-    per_page = DEFAULT_PER_PAGE
+    per_page = DEFAULT_PER_PAGE  # 100
     response = get_response(page, per_page)
     initdata = response.json()
-    total_count = initdata.get("totalCount")
+    # From initdata, get the total number of data and the first page.
+    total_count = initdata.get("totalCount")  # The total number of data
     if not total_count:
+        # If the API returns an empty list(by error or something), return an empty list.
         print(__name__, "No data")
         print(f"status code: {response.status_code}")
         print(f"{response.text}")
         return []
     total_page = total_count // per_page + 2
+    # The number of pages to get all the data
     data = initdata.get("data") + sum(
         (
             get_response(page, per_page).json().get("data")
             for page in range(2, total_page)
+            # Get the data from the second page to the last page
         ),
         [],
     )
@@ -76,7 +88,8 @@ def save_data_to_csv(data: list[dict[str, str | int]]) -> None:
     """
     Save `list[dict]` type data to csv file.
     The file is saved in the `data` directory.
-    The name is in `%Y%m%d-%H%M%S`(yyyymmdd-HHMMSS) format when this function is executed.
+    The name is the time in `%Y%m%d-%H%M%S`(yyyymmdd-HHMMSS) format
+        when this function is executed.
     The fieldname is defined by the key of the first dictionary of the list.
     """
     now = datetime.now().strftime("%Y%m%d-%H%M%S")

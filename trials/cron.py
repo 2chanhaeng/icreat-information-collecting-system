@@ -19,6 +19,9 @@ verbose_to_field = {
 
 
 def log_updated_data():
+    """
+    Log the updated data.
+    """
     now = datetime.now()
     log_fn = LOG_PATH / f"{now.strftime('%Y%m%d-%H%M%S')}.log"
     with open(log_fn, "w") as sys.stdout:

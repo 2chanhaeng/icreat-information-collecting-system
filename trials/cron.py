@@ -1,6 +1,10 @@
+import sys
+from pathlib import Path
+from datetime import datetime
 from .utils.requests import get_data, save_data_to_csv
 from .models import Trial
 
+LOG_PATH = Path(__file__).parent.parent / "log"
 verbose_to_field = {
     "과제명": "name",
     "과제번호": "number",
@@ -12,6 +16,15 @@ verbose_to_field = {
     "전체목표연구대상자수": "target",
     "진료과": "department",
 }
+
+
+def log_updated_data():
+    now = datetime.now()
+    log_fn = LOG_PATH / f"{now.strftime('%Y%m%d-%H%M%S')}.log"
+    with open(log_fn, "w") as sys.stdout:
+        update_data()
+    sys.stdout = sys.__stdout__
+    print(f"Log is saved to {log_fn}.")
 
 
 def update_data():

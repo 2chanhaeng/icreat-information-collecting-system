@@ -15,7 +15,11 @@ class Trial(models.Model):
     """
 
     name = models.CharField(max_length=100, verbose_name="과제명")
-    number = models.CharField(max_length=100, verbose_name="과제번호")
+    number = models.CharField(
+        unique=True,
+        max_length=100,
+        verbose_name="과제번호",
+    )
     period = models.CharField(max_length=100, verbose_name="연구기간")
     scope = models.CharField(max_length=100, verbose_name="연구범위")
     kind = models.CharField(max_length=100, verbose_name="연구종류")
@@ -27,7 +31,10 @@ class Trial(models.Model):
         max_length=100,
         verbose_name="임상시험단계(연구모형)",
     )
-    target = models.IntegerField(verbose_name="전체목표연구대상자수")
+    target = models.IntegerField(
+        verbose_name="전체목표연구대상자수",
+        null=True,  # Some data does not have this field.
+    )
     department = models.CharField(max_length=100, verbose_name="진료과")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

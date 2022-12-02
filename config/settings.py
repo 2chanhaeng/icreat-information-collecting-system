@@ -137,3 +137,8 @@ CRONJOBS = [
 ]
 # For start cronjob, run "python manage.py crontab add"
 # For stop cronjob, run "python manage.py crontab remove"
+
+REST_FRAMEWORK = {
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
+    "PAGE_SIZE": 5,
+}

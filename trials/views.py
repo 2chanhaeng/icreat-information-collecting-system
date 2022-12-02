@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from rest_framework.views import APIView
 from rest_framework.request import Request
 from rest_framework.response import Response
+from rest_framework.pagination import LimitOffsetPagination
 from .models import Trial
 from .serializers import TrialSerializer
 from rest_framework.status import HTTP_404_NOT_FOUND
@@ -17,8 +18,12 @@ class TrialsView(APIView):
         trials = Trial.objects.filter(
             updated_at__gte=datetime.now() - timedelta(days=7)
         )
-        serializer = TrialSerializer(trials, many=True)
-        return Response(serializer.data)
+        # pagination
+        paginator = LimitOffsetPagination()
+        paginator.default_offset = 0
+        page = paginator.paginate_queryset(trials, request)
+        serializer = TrialSerializer(page, many=True)
+        return paginator.get_paginated_response(serializer.data)
 
 
 class TrialView(APIView):
